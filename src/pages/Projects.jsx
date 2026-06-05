@@ -5,7 +5,7 @@ import { SkeletonRow } from '../components/Skeleton'
 export default function Projects() {
   const [items, setItems] = useState([])
   const [editing, setEditing] = useState(null)
-  const [form, setForm] = useState({ title: '', description: '', image_url: '', tags: '', client_name: '', sort_order: 0 })
+  const [form, setForm] = useState({ title: '', description: '', image_url: '', tags: '', client_name: '', preview_link: '', github_repo: '', sort_order: 0 })
   const [screenshots, setScreenshots] = useState([])
   const [uploading, setUploading] = useState(false)
   const [uploadingScreenshot, setUploadingScreenshot] = useState(false)
@@ -41,7 +41,7 @@ export default function Projects() {
 
   const openNew = () => {
     setEditing('new')
-    setForm({ title: '', description: '', image_url: '', tags: [], client_name: '', sort_order: items.length })
+    setForm({ title: '', description: '', image_url: '', tags: [], client_name: '', preview_link: '', github_repo: '', sort_order: items.length })
     setScreenshots([])
   }
 
@@ -222,6 +222,8 @@ export default function Projects() {
               )}
             </div>
             <input placeholder="Client Name" value={form.client_name} onChange={e => setForm({...form, client_name: e.target.value})} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white" />
+            <input placeholder="Preview Link (https://...)" value={form.preview_link} onChange={e => setForm({...form, preview_link: e.target.value})} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white" />
+            <input placeholder="GitHub Repo (https://github.com/...)" value={form.github_repo} onChange={e => setForm({...form, github_repo: e.target.value})} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white" />
             <div className="flex gap-2 justify-end pt-2">
               <button onClick={() => setEditing(null)} className="px-4 py-2 text-zinc-400 hover:text-white">Cancel</button>
               <button onClick={save} className="bg-primary hover:bg-primary/80 text-white px-6 py-2 rounded-lg font-bold">Save</button>
