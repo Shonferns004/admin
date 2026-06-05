@@ -13,6 +13,7 @@ export default function Projects() {
   const fileRef = useRef()
   const screenshotFileRef = useRef()
   const [newScreenshotDevice, setNewScreenshotDevice] = useState('website')
+  const [customTag, setCustomTag] = useState('')
 
   useEffect(() => { load() }, [])
 
@@ -40,13 +41,13 @@ export default function Projects() {
 
   const openNew = () => {
     setEditing('new')
-    setForm({ title: '', description: '', image_url: '', tags: '', client_name: '', sort_order: items.length })
+    setForm({ title: '', description: '', image_url: '', tags: [], client_name: '', sort_order: items.length })
     setScreenshots([])
   }
 
   const openEdit = (item) => {
     setEditing(item.id)
-    setForm({ ...item, tags: item.tags?.join(', ') || '' })
+    setForm({ ...item, tags: item.tags || [] })
     loadScreenshots(item.id)
   }
 
@@ -107,7 +108,7 @@ export default function Projects() {
   }
 
   const save = async () => {
-    const payload = { ...form, tags: form.tags ? form.tags.split(',').map(t => t.trim()).filter(Boolean) : [] }
+    const payload = { ...form, tags: form.tags }
     if (editing === 'new') {
       const created = await api.post('/projects', payload)
       for (const shot of screenshots) {
@@ -192,7 +193,34 @@ export default function Projects() {
               </div>
             </div>
 
-            <input placeholder="Tags (comma separated)" value={form.tags} onChange={e => setForm({...form, tags: e.target.value})} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white" />
+            <div>
+              <label className="text-zinc-400 text-sm block mb-2">Tags</label>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {['App', 'Website', 'Event'].map(t => (
+                  <button key={t} type="button" onClick={() => setForm({...form, tags: form.tags.includes(t) ? form.tags.filter(x => x !== t) : [...form.tags, t]})} className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${form.tags.includes(t) ? 'bg-primary text-white' : 'bg-zinc-800 text-zinc-300 border border-zinc-700 hover:border-zinc-500'}`}>{t}</button>
+                ))}
+                {!customTag && (
+                  <button type="button" onClick={() => setCustomTag(' ')} className="px-3 py-1.5 rounded-lg text-sm font-medium bg-zinc-800 text-zinc-300 border border-zinc-700 hover:border-zinc-500">+ Other</button>
+                )}
+              </div>
+              {customTag !== '' && (
+                <div className="flex gap-2 mb-3">
+                  <input autoFocus value={customTag === ' ' ? '' : customTag} onChange={e => setCustomTag(e.target.value)} placeholder="Type custom tag..." className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-white" onKeyDown={e => { if (e.key === 'Enter' && customTag.trim()) { setForm({...form, tags: [...form.tags, customTag.trim()]}); setCustomTag('') } }} />
+                  <button type="button" onClick={() => { if (customTag.trim()) { setForm({...form, tags: [...form.tags, customTag.trim()]}); setCustomTag('') } }} className="px-3 py-1.5 rounded-lg text-sm font-bold bg-primary text-white">Add</button>
+                  <button type="button" onClick={() => setCustomTag('')} className="px-3 py-1.5 rounded-lg text-sm text-zinc-400 hover:text-white">Cancel</button>
+                </div>
+              )}
+              {form.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {form.tags.map(t => (
+                    <span key={t} className="inline-flex items-center gap-1.5 bg-zinc-800 text-zinc-200 text-xs px-2.5 py-1 rounded-full border border-zinc-700">
+                      {t}
+                      <button type="button" onClick={() => setForm({...form, tags: form.tags.filter(x => x !== t)})} className="text-zinc-500 hover:text-white">&times;</button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
             <input placeholder="Client Name" value={form.client_name} onChange={e => setForm({...form, client_name: e.target.value})} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white" />
             <div className="flex gap-2 justify-end pt-2">
               <button onClick={() => setEditing(null)} className="px-4 py-2 text-zinc-400 hover:text-white">Cancel</button>
