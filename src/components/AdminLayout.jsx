@@ -85,6 +85,15 @@ export default function AdminLayout({ children }) {
                   </Link>
                 )
               })}
+              {activeTab.section === 'Settings' && (
+                <button
+                  onClick={() => { setActiveTab(null); handleLogout() }}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-red-400 hover:bg-red-500/10 w-full transition-colors"
+                >
+                  <span className="material-symbols-outlined text-xl">logout</span>
+                  Logout
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -141,14 +150,6 @@ export default function AdminLayout({ children }) {
 
       {/* Main content */}
       <main className="flex-1 flex flex-col bg-zinc-950 min-h-0">
-        {/* Mobile top bar */}
-        <div className="md:hidden flex items-center justify-between h-14 px-4 border-b border-zinc-800 bg-zinc-950/95 backdrop-blur shrink-0">
-          <div className="font-bold text-sm tracking-tight">Crabstack</div>
-          <button onClick={handleLogout} className="text-zinc-400 hover:text-primary p-1" title="Logout">
-            <span className="material-symbols-outlined text-lg">logout</span>
-          </button>
-        </div>
-
         <div className="flex-1 overflow-y-auto p-4 md:p-10 max-w-7xl mx-auto w-full pb-20">
           {children}
         </div>
