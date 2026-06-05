@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #e60a15;
+  --color-background-light: #f8f5f6;
+  --color-background-dark: #000000;
+  --font-family-display: "Space Grotesk", sans-serif;
+  --font-family-sans: "Space Grotesk", sans-serif;
+  --font-family-mono: "Space Grotesk", sans-serif;
+}
+
+@layer base {
+  body {
+    background-color: #000;
+    color: #fff;
+    overflow-x: hidden;
+    font-family: "Space Grotesk", sans-serif;
+  }
+  ::selection {
+    background: #e60a15;
+    color: #fff;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #000;
+}
+::-webkit-scrollbar-thumb {
+  background: #e60a15;
+}
