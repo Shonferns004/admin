@@ -47,7 +47,7 @@ export default function ActivityLog() {
       (l.action || '').toLowerCase().includes(q) ||
       (l.entity_type || '').toLowerCase().includes(q) ||
       (l.entity_id || '').toLowerCase().includes(q) ||
-      (l.users?.username || '').toLowerCase().includes(q) ||
+      (l.user_id || '').toLowerCase().includes(q) ||
       JSON.stringify(l.details || {}).toLowerCase().includes(q)
     )
   }, [logs, search])
@@ -134,8 +134,8 @@ export default function ActivityLog() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className={`text-sm font-semibold capitalize ${meta.color}`}>{item.action}</span>
                         <span className="text-zinc-500 text-xs bg-zinc-800 px-2 py-0.5 rounded">{item.entity_type}</span>
-                        {item.users?.username && (
-                          <span className="text-zinc-400 text-xs">by {item.users.username}</span>
+                        {item.user_id && (
+                          <span className="text-zinc-400 text-xs">by {item.user_id}</span>
                         )}
                       </div>
                       {item.entity_id && (

@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react'
 import { api } from '../api'
+import DeleteModal from '../components/DeleteModal'
 
 export default function Subscribers() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => { load() }, [])
 
@@ -21,14 +24,16 @@ export default function Subscribers() {
   }
 
   const remove = async (id) => {
-    if (confirm('Remove subscriber?')) {
-      try {
-        await api.delete(`/subscribers/${id}`)
-        load()
-      } catch (e) {
-        console.error('Failed to remove subscriber', e)
-      }
+    setDeleting(true)
+    try {
+      await api.delete(`/subscribers/${id}`)
+      setItems(items.filter(i => i.id !== id))
+      load()
+    } catch (e) {
+      console.error('Failed to remove subscriber', e)
     }
+    setDeleting(false)
+    setDeleteTarget(null)
   }
 
   const exportCSV = () => {
@@ -67,7 +72,7 @@ export default function Subscribers() {
                   <td className="p-4">{s.email}</td>
                   <td className="p-4 text-zinc-400 hidden md:table-cell">{s.created_at ? new Date(s.created_at).toLocaleDateString() : '-'}</td>
                   <td className="p-4">
-                    <button onClick={() => remove(s.id)} className="text-zinc-400 hover:text-red-400"><span className="material-symbols-outlined text-lg">delete</span></button>
+                    <button onClick={() => setDeleteTarget({ id: s.id, title: 'subscriber' })} className="text-zinc-400 hover:text-red-400"><span className="material-symbols-outlined text-lg">delete</span></button>
                   </td>
                 </tr>
               ))}
@@ -76,6 +81,7 @@ export default function Subscribers() {
           </table>
         )}
       </div>
+      <DeleteModal open={!!deleteTarget} title={deleteTarget?.title || ''} deleting={deleting} onConfirm={() => remove(deleteTarget.id)} onCancel={() => { setDeleteTarget(null); setDeleting(false) }} />
     </div>
   )
 }

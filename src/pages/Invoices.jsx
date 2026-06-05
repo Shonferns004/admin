@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { api } from '../api'
 import { SkeletonRow } from '../components/Skeleton'
+import DeleteModal from '../components/DeleteModal'
 
 const statusColors = { draft: 'bg-zinc-800 text-zinc-400', sent: 'bg-blue-500/10 text-blue-400', paid: 'bg-green-500/10 text-green-400', overdue: 'bg-red-500/10 text-red-400' }
 
@@ -9,6 +10,8 @@ export default function Invoices() {
   const [editing, setEditing] = useState(null)
   const [form, setForm] = useState({ client_name: '', project_name: '', amount: '', status: 'draft', file_url: '', notes: '' })
   const [loading, setLoading] = useState(true)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => { load() }, [])
 
@@ -34,7 +37,16 @@ export default function Invoices() {
   }
 
   const remove = async (id) => {
-    if (confirm('Delete?')) { await api.delete(`/invoices/${id}`); load() }
+    setDeleting(true)
+    try {
+      await api.delete(`/invoices/${id}`)
+      setItems(items.filter(i => i.id !== id))
+      load()
+    } catch (e) {
+      console.error(e)
+    }
+    setDeleting(false)
+    setDeleteTarget(null)
   }
 
   return (
@@ -91,7 +103,7 @@ export default function Invoices() {
                   <td className="p-4">
                     <div className="flex gap-2">
                       <button onClick={() => openEdit(item)} className="text-zinc-400 hover:text-primary"><span className="material-symbols-outlined text-lg">edit</span></button>
-                      <button onClick={() => remove(item.id)} className="text-zinc-400 hover:text-red-400"><span className="material-symbols-outlined text-lg">delete</span></button>
+                      <button onClick={() => setDeleteTarget({ id: item.id, title: 'invoice' })} className="text-zinc-400 hover:text-red-400"><span className="material-symbols-outlined text-lg">delete</span></button>
                     </div>
                   </td>
                 </tr>
@@ -101,6 +113,7 @@ export default function Invoices() {
           )}
         </table>
       </div>
+      <DeleteModal open={!!deleteTarget} title={deleteTarget?.title || ''} deleting={deleting} onConfirm={() => remove(deleteTarget.id)} onCancel={() => { setDeleteTarget(null); setDeleting(false) }} />
     </div>
   )
 }

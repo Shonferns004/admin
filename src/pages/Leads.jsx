@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
+import DeleteModal from '../components/DeleteModal'
 
 const typeOptions = [
   { id: 'startup', label: 'Startup' },
@@ -20,6 +21,8 @@ export default function Leads() {
   const [editingId, setEditingId] = useState(null)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState('')
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => { load() }, [])
 
@@ -79,14 +82,17 @@ export default function Leads() {
   }
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this lead?')) return
+    setDeleting(true)
     try {
       await api.delete(`/leads/${id}`)
+      setLeads(leads.filter(l => l.id !== id))
       load()
       setToast('Lead deleted')
     } catch (e) {
       setToast('Error deleting lead')
     }
+    setDeleting(false)
+    setDeleteTarget(null)
   }
 
   const handleCancel = () => {
@@ -185,7 +191,7 @@ export default function Leads() {
                     <td className="p-2">
                       <div className="flex gap-1">
                         <button onClick={() => handleEdit(lead)} className="text-zinc-400 hover:text-primary px-2 py-1 rounded text-xs font-semibold">Edit</button>
-                        <button onClick={() => handleDelete(lead.id)} className="text-zinc-400 hover:text-red-400 px-2 py-1 rounded text-xs font-semibold">Delete</button>
+                        <button onClick={() => setDeleteTarget({ id: lead.id, title: 'lead' })} className="text-zinc-400 hover:text-red-400 px-2 py-1 rounded text-xs font-semibold">Delete</button>
                       </div>
                     </td>
                   </tr>
@@ -195,6 +201,8 @@ export default function Leads() {
           </div>
         )}
       </div>
+
+      <DeleteModal open={!!deleteTarget} title={deleteTarget?.title || ''} deleting={deleting} onConfirm={() => handleDelete(deleteTarget.id)} onCancel={() => { setDeleteTarget(null); setDeleting(false) }} />
     </div>
   )
 }

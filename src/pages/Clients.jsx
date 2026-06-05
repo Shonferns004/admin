@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react'
 import { api } from '../api'
 import { SkeletonRow } from '../components/Skeleton'
+import DeleteModal from '../components/DeleteModal'
 
 export default function Clients() {
   const [items, setItems] = useState([])
   const [editing, setEditing] = useState(null)
   const [form, setForm] = useState({ name: '', logo_url: '', description: '', website: '', project_history: '', sort_order: 0 })
   const [loading, setLoading] = useState(true)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => { load() }, [])
 
@@ -32,7 +35,16 @@ export default function Clients() {
   }
 
   const remove = async (id) => {
-    if (confirm('Delete?')) { await api.delete(`/clients/${id}`); load() }
+    setDeleting(true)
+    try {
+      await api.delete(`/clients/${id}`)
+      setItems(items.filter(i => i.id !== id))
+      load()
+    } catch (e) {
+      console.error(e)
+    }
+    setDeleting(false)
+    setDeleteTarget(null)
   }
 
   return (
@@ -80,13 +92,14 @@ export default function Clients() {
               </div>
               <div className="flex gap-1 shrink-0">
                 <button onClick={() => openEdit(item)} className="text-zinc-400 hover:text-primary"><span className="material-symbols-outlined text-lg">edit</span></button>
-                <button onClick={() => remove(item.id)} className="text-zinc-400 hover:text-red-400"><span className="material-symbols-outlined text-lg">delete</span></button>
+                <button onClick={() => setDeleteTarget({ id: item.id, title: 'client' })} className="text-zinc-400 hover:text-red-400"><span className="material-symbols-outlined text-lg">delete</span></button>
               </div>
             </div>
           ))}
           {items.length === 0 && <div className="text-center text-zinc-500 py-12">No clients yet</div>}
         </div>
       )}
+      <DeleteModal open={!!deleteTarget} title={deleteTarget?.title || ''} deleting={deleting} onConfirm={() => remove(deleteTarget.id)} onCancel={() => { setDeleteTarget(null); setDeleting(false) }} />
     </div>
   )
 }

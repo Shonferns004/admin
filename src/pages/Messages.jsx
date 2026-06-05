@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react'
 import { api } from '../api'
 import { SkeletonRow } from '../components/Skeleton'
+import DeleteModal from '../components/DeleteModal'
 
 export default function Messages() {
   const [items, setItems] = useState([])
   const [selected, setSelected] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => { load() }, [])
 
@@ -27,7 +30,17 @@ export default function Messages() {
   }
 
   const remove = async (id) => {
-    if (confirm('Delete?')) { await api.delete(`/contacts/${id}`); load(); if (selected?.id === id) setSelected(null) }
+    setDeleting(true)
+    try {
+      await api.delete(`/contacts/${id}`)
+      if (selected?.id === id) setSelected(null)
+      setItems(items.filter(i => i.id !== id))
+      load()
+    } catch (e) {
+      console.error(e)
+    }
+    setDeleting(false)
+    setDeleteTarget(null)
   }
 
   return (
@@ -69,7 +82,7 @@ export default function Messages() {
                   <h2 className="text-xl font-bold">{selected.name}</h2>
                   <p className="text-zinc-400 text-sm">{selected.email}</p>
                 </div>
-                <button onClick={() => remove(selected.id)} className="text-zinc-400 hover:text-red-400"><span className="material-symbols-outlined">delete</span></button>
+                <button onClick={() => setDeleteTarget({ id: selected.id, title: 'message' })} className="text-zinc-400 hover:text-red-400"><span className="material-symbols-outlined">delete</span></button>
               </div>
               <div className="text-[10px] text-zinc-600">{new Date(selected.created_at).toLocaleString()}</div>
               <div className="bg-zinc-800/50 rounded-lg p-4 text-zinc-300 whitespace-pre-wrap">{selected.message}</div>
@@ -85,6 +98,7 @@ export default function Messages() {
           )}
         </div>
       </div>
+      <DeleteModal open={!!deleteTarget} title={deleteTarget?.title || ''} deleting={deleting} onConfirm={() => remove(deleteTarget.id)} onCancel={() => { setDeleteTarget(null); setDeleting(false) }} />
     </div>
   )
 }

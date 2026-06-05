@@ -1,11 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
 import { api } from '../api'
 import { SkeletonRow } from '../components/Skeleton'
+import DeleteModal from '../components/DeleteModal'
 
 export default function Media() {
   const [items, setItems] = useState([])
   const [uploading, setUploading] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
   const fileRef = useRef()
 
   useEffect(() => { load() }, [])
@@ -33,7 +36,16 @@ export default function Media() {
   }
 
   const remove = async (id) => {
-    if (confirm('Delete?')) { await api.delete(`/media/${id}`); load() }
+    setDeleting(true)
+    try {
+      await api.delete(`/media/${id}`)
+      setItems(items.filter(i => i.id !== id))
+      load()
+    } catch (e) {
+      console.error(e)
+    }
+    setDeleting(false)
+    setDeleteTarget(null)
   }
 
   const copyUrl = (url) => {
@@ -70,7 +82,7 @@ export default function Media() {
                 <img src={item.url} alt={item.alt || ''} className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                   <button onClick={() => copyUrl(item.url)} className="bg-white/20 hover:bg-white/30 text-white p-2 rounded-full"><span className="material-symbols-outlined text-lg">link</span></button>
-                  <button onClick={() => remove(item.id)} className="bg-red-500/70 hover:bg-red-500 text-white p-2 rounded-full"><span className="material-symbols-outlined text-lg">delete</span></button>
+                  <button onClick={() => setDeleteTarget({ id: item.id, title: 'media' })} className="bg-red-500/70 hover:bg-red-500 text-white p-2 rounded-full"><span className="material-symbols-outlined text-lg">delete</span></button>
                 </div>
               </div>
               <div className="p-2 text-[10px] text-zinc-500 truncate">{item.filename}</div>
@@ -79,6 +91,7 @@ export default function Media() {
           {items.length === 0 && <div className="col-span-full text-center text-zinc-500 py-12">No media uploaded yet</div>}
         </div>
       )}
+      <DeleteModal open={!!deleteTarget} title={deleteTarget?.title || ''} deleting={deleting} onConfirm={() => remove(deleteTarget.id)} onCancel={() => { setDeleteTarget(null); setDeleting(false) }} />
     </div>
   )
 }

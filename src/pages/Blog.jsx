@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { api } from '../api'
 import { SkeletonRow } from '../components/Skeleton'
+import DeleteModal from '../components/DeleteModal'
 
 export default function Blog() {
   const [posts, setPosts] = useState([])
@@ -10,6 +11,8 @@ export default function Blog() {
   const [catForm, setCatForm] = useState({ name: '', slug: '' })
   const [form, setForm] = useState({ title: '', slug: '', content: '', excerpt: '', image_url: '', category_id: '', author: '', published: false })
   const [loading, setLoading] = useState(true)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => { load(); loadCategories() }, [])
 
@@ -47,7 +50,16 @@ export default function Blog() {
   }
 
   const remove = async (id) => {
-    if (confirm('Delete this post?')) { await api.delete(`/blog/${id}`); load() }
+    setDeleting(true)
+    try {
+      await api.delete(`/blog/${id}`)
+      setPosts(posts.filter(p => p.id !== id))
+      load()
+    } catch (e) {
+      console.error(e)
+    }
+    setDeleting(false)
+    setDeleteTarget(null)
   }
 
   const saveCategory = async () => {
@@ -58,7 +70,15 @@ export default function Blog() {
   }
 
   const removeCategory = async (id) => {
-    if (confirm('Delete category?')) { await api.delete(`/blog/categories/${id}`); loadCategories() }
+    setDeleting(true)
+    try {
+      await api.delete(`/blog/categories/${id}`)
+      loadCategories()
+    } catch (e) {
+      console.error(e)
+    }
+    setDeleting(false)
+    setDeleteTarget(null)
   }
 
   return (
@@ -83,7 +103,7 @@ export default function Blog() {
             {categories.map(c => (
               <span key={c.id} className="flex items-center gap-1 bg-zinc-800 px-3 py-1 rounded text-sm">
                 {c.name}
-                <button onClick={() => removeCategory(c.id)} className="text-zinc-500 hover:text-red-400"><span className="material-symbols-outlined text-sm">close</span></button>
+                <button onClick={() => setDeleteTarget({ id: c.id, title: 'category', onDelete: removeCategory })} className="text-zinc-500 hover:text-red-400"><span className="material-symbols-outlined text-sm">close</span></button>
               </span>
             ))}
           </div>
@@ -146,7 +166,7 @@ export default function Blog() {
                   <td className="p-4">
                     <div className="flex gap-2">
                       <button onClick={() => openEdit(post)} className="text-zinc-400 hover:text-primary"><span className="material-symbols-outlined text-lg">edit</span></button>
-                      <button onClick={() => remove(post.id)} className="text-zinc-400 hover:text-red-400"><span className="material-symbols-outlined text-lg">delete</span></button>
+                      <button onClick={() => setDeleteTarget({ id: post.id, title: 'post', onDelete: remove })} className="text-zinc-400 hover:text-red-400"><span className="material-symbols-outlined text-lg">delete</span></button>
                     </div>
                   </td>
                 </tr>
@@ -156,6 +176,8 @@ export default function Blog() {
           )}
         </table>
       </div>
+
+      <DeleteModal open={!!deleteTarget} title={deleteTarget?.title || ''} deleting={deleting} onConfirm={() => deleteTarget?.onDelete?.(deleteTarget.id)} onCancel={() => { setDeleteTarget(null); setDeleting(false) }} />
     </div>
   )
 }
