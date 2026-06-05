@@ -55,7 +55,7 @@ export default function AdminLayout({ children }) {
   const currentSection = navItems.find(g => g.items.some(i => i.path === location.pathname))
 
   return (
-    <div ref={vhRef} className="flex bg-zinc-950 text-white overflow-hidden">
+    <div ref={vhRef} className="flex flex-col md:flex-row bg-zinc-950 text-white overflow-hidden">
       {/* Mobile overlay */}
       {mobileSidebarOpen && (
         <button type="button" onClick={() => setMobileSidebarOpen(false)} className="fixed inset-0 bg-black/50 z-30 md:hidden" aria-label="Close sidebar overlay" />
@@ -140,7 +140,7 @@ export default function AdminLayout({ children }) {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 flex flex-col bg-zinc-950">
+      <main className="flex-1 flex flex-col bg-zinc-950 min-h-0">
         {/* Mobile top bar */}
         <div className="md:hidden flex items-center justify-between h-14 px-4 border-b border-zinc-800 bg-zinc-950/95 backdrop-blur shrink-0">
           <div className="font-bold text-sm tracking-tight">Crabstack</div>
@@ -149,12 +149,13 @@ export default function AdminLayout({ children }) {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 md:p-10 max-w-7xl mx-auto w-full">
+        <div className="flex-1 overflow-y-auto p-4 md:p-10 max-w-7xl mx-auto w-full pb-20">
           {children}
         </div>
+      </main>
 
-        {/* Mobile bottom tab bar */}
-        <div className="md:hidden flex items-center border-t border-zinc-800 bg-zinc-900 safe-area-pb shrink-0">
+      {/* Mobile bottom tab bar */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center border-t border-zinc-800 bg-zinc-900 safe-area-pb">
           {navItems.map(group => {
             const isActive = currentSection?.section === group.section
             return (
@@ -177,7 +178,6 @@ export default function AdminLayout({ children }) {
             )
           })}
         </div>
-      </main>
     </div>
   )
 }
