@@ -150,7 +150,13 @@ export default function AdminLayout({ children }) {
             return (
               <button
                 key={group.section}
-                onClick={() => setActiveTab(activeTab?.section === group.section ? null : group)}
+                onClick={() => {
+                  if (isActive) {
+                    setActiveTab(activeTab?.section === group.section ? null : group)
+                  } else {
+                    navigate(group.items[0].path)
+                  }
+                }}
                 className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] transition-colors ${
                   isActive ? 'text-primary' : 'text-zinc-500 hover:text-zinc-300'
                 }`}
