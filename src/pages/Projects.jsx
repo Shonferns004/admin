@@ -65,20 +65,26 @@ export default function Projects() {
   }
 
   const handleScreenshotUpload = async () => {
-    const file = screenshotFileRef.current?.files?.[0]
-    if (!file) return
+    const files = screenshotFileRef.current?.files
+    if (!files || files.length === 0) return
     setUploadingScreenshot(true)
     try {
-      const result = await api.upload(file, form.title || 'screenshot')
-      await api.post(`/projects/${editing === 'new' ? '__temp__' : editing}/images`, {
-        image_url: result.url,
-        device_type: newScreenshotDevice,
-        sort_order: screenshots.length,
-      })
+      const uploads = []
+      for (let i = 0; i < files.length; i++) {
+        const result = await api.upload(files[i], form.title || 'screenshot')
+        uploads.push(result)
+      }
       if (editing !== 'new') {
+        for (const u of uploads) {
+          await api.post(`/projects/${editing}/images`, {
+            image_url: u.url,
+            device_type: newScreenshotDevice,
+            sort_order: screenshots.length,
+          })
+        }
         loadScreenshots(editing)
       } else {
-        setScreenshots([...screenshots, { id: Date.now().toString(), image_url: result.url, device_type: newScreenshotDevice, sort_order: screenshots.length }])
+        setScreenshots(prev => [...prev, ...uploads.map((u, i) => ({ id: (Date.now() + i).toString(), image_url: u.url, device_type: newScreenshotDevice, sort_order: prev.length + i }))])
       }
     } catch (e) {
       console.error('Screenshot upload failed', e)
@@ -175,7 +181,7 @@ export default function Projects() {
                 </div>
               )}
               <div className="flex items-center gap-2">
-                <input ref={screenshotFileRef} type="file" accept="image/*" onChange={handleScreenshotUpload} className="hidden" id="screenshot-input" />
+                <input ref={screenshotFileRef} type="file" accept="image/*" multiple onChange={handleScreenshotUpload} className="hidden" id="screenshot-input" />
                 <select value={newScreenshotDevice} onChange={e => setNewScreenshotDevice(e.target.value)} className="bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-2 text-white text-sm">
                   <option value="website">Website</option>
                   <option value="mobile">Mobile</option>
