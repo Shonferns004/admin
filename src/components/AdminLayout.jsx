@@ -17,7 +17,6 @@ const navItems = [
   ]},
   { section: 'Settings', items: [
     { label: 'Media', path: '/media', icon: 'photo_library' },
-    { label: 'Groq Keys', path: '/groq-keys', icon: 'vpn_key' },
     { label: 'Activity Log', path: '/activity', icon: 'history' },
   ]},
 ]

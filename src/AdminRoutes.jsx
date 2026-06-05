@@ -13,7 +13,6 @@ import Invoices from './pages/Invoices'
 import Media from './pages/Media'
 import ActivityLog from './pages/ActivityLog'
 import Leads from './pages/Leads'
-import GroqKeys from './pages/GroqKeys'
 
 function AdminPage({ children }) {
   return <AdminLayout>{children}</AdminLayout>
@@ -34,7 +33,6 @@ export default function AdminRoutes() {
       <Route path="/leads" element={<PrivateRoute><AdminPage><Leads /></AdminPage></PrivateRoute>} />
       <Route path="/invoices" element={<PrivateRoute><AdminPage><Invoices /></AdminPage></PrivateRoute>} />
       <Route path="/media" element={<PrivateRoute><AdminPage><Media /></AdminPage></PrivateRoute>} />
-      <Route path="/groq-keys" element={<PrivateRoute><AdminPage><GroqKeys /></AdminPage></PrivateRoute>} />
       <Route path="/activity" element={<PrivateRoute><AdminPage><ActivityLog /></AdminPage></PrivateRoute>} />
     </Routes>
   )
