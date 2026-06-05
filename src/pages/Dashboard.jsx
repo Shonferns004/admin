@@ -125,21 +125,17 @@ export default function Dashboard() {
       api.get('/projects').catch(() => []),
       api.get('/contacts?unread=true').catch(() => []),
       api.get('/subscribers').catch(() => []),
-      api.get('/bookings').catch(() => []),
-      api.get('/services').catch(() => []),
       api.get('/testimonials').catch(() => []),
       api.get('/blog').catch(() => []),
       api.get('/clients').catch(() => []),
       api.get('/leads?include_deleted=false&limit=1000').catch(() => []),
-    ]).then(([projects, contacts, subscribers, bookings, services, testimonials, blog, clients, leadsData]) => {
+    ]).then(([projects, contacts, subscribers, testimonials, blog, clients, leadsData]) => {
       const safeLeads = Array.isArray(leadsData) ? leadsData : []
       setLeads(safeLeads)
       setStats({
         projects: Array.isArray(projects) ? projects.length : 0,
         messages: Array.isArray(contacts) ? contacts.length : 0,
         subscribers: Array.isArray(subscribers) ? subscribers.length : 0,
-        bookings: Array.isArray(bookings) ? bookings.length : 0,
-        services: Array.isArray(services) ? services.length : 0,
         testimonials: Array.isArray(testimonials) ? testimonials.length : 0,
         blog: Array.isArray(blog) ? blog.length : 0,
         clients: Array.isArray(clients) ? clients.length : 0,
@@ -184,8 +180,6 @@ export default function Dashboard() {
     { label: 'Unread Messages', key: 'messages', icon: 'mail', color: 'text-green-400' },
     { label: 'Leads', key: 'leads', icon: 'track_changes', color: 'text-emerald-400' },
     { label: 'Subscribers', key: 'subscribers', icon: 'subscriptions', color: 'text-purple-400' },
-    { label: 'Bookings', key: 'bookings', icon: 'calendar_month', color: 'text-yellow-400' },
-    { label: 'Services', key: 'services', icon: 'build', color: 'text-pink-400' },
     { label: 'Testimonials', key: 'testimonials', icon: 'format_quote', color: 'text-orange-400' },
     { label: 'Blog Posts', key: 'blog', icon: 'article', color: 'text-cyan-400' },
     { label: 'Clients', key: 'clients', icon: 'groups', color: 'text-indigo-400' },
@@ -198,7 +192,7 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
         {loading ? (
-          Array.from({ length: 9 }).map((_, i) => <SkeletonCard key={i} />)
+          Array.from({ length: 7 }).map((_, i) => <SkeletonCard key={i} />)
         ) : stats ? (
           cards.map(card => (
             <div key={card.label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 flex items-center gap-4">

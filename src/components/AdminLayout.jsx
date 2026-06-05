@@ -6,27 +6,19 @@ const navItems = [
   { section: 'Content', items: [
     { label: 'Dashboard', path: '/dashboard', icon: 'dashboard' },
     { label: 'Projects', path: '/projects', icon: 'folder' },
-    { label: 'Services', path: '/services', icon: 'build' },
     { label: 'Testimonials', path: '/testimonials', icon: 'format_quote' },
-    { label: 'FAQ', path: '/faq', icon: 'help' },
     { label: 'Blog', path: '/blog', icon: 'article' },
     { label: 'Clients', path: '/clients', icon: 'groups' },
-    { label: 'Pages', path: '/pages', icon: 'description' },
   ]},
   { section: 'Inbox', items: [
     { label: 'Messages', path: '/messages', icon: 'mail' },
     { label: 'Leads', path: '/leads', icon: 'track_changes' },
-    { label: 'Bookings', path: '/bookings', icon: 'calendar_month' },
     { label: 'Subscribers', path: '/subscribers', icon: 'subscriptions' },
   ]},
   { section: 'Settings', items: [
-    { label: 'Navigation', path: '/navigation', icon: 'menu' },
-    { label: 'SEO', path: '/seo', icon: 'search' },
     { label: 'Media', path: '/media', icon: 'photo_library' },
     { label: 'Groq Keys', path: '/groq-keys', icon: 'vpn_key' },
-    { label: 'Site Settings', path: '/settings', icon: 'settings' },
     { label: 'Activity Log', path: '/activity', icon: 'history' },
-    { label: 'Users', path: '/users', icon: 'admin_panel_settings' },
   ]},
 ]
 
