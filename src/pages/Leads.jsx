@@ -23,6 +23,7 @@ export default function Leads() {
   const [toast, setToast] = useState('')
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [selectedIds, setSelectedIds] = useState(new Set())
 
   useEffect(() => { load() }, [])
 
@@ -86,6 +87,7 @@ export default function Leads() {
     try {
       await api.delete(`/leads/${id}`)
       setLeads(leads.filter(l => l.id !== id))
+      setSelectedIds(new Set([...selectedIds].filter(s => s !== id)))
       load()
       setToast('Lead deleted')
     } catch (e) {
@@ -93,6 +95,38 @@ export default function Leads() {
     }
     setDeleting(false)
     setDeleteTarget(null)
+  }
+
+  const handleBulkDelete = async () => {
+    setDeleting(true)
+    const ids = [...selectedIds]
+    try {
+      for (const id of ids) {
+        await api.delete(`/leads/${id}`)
+      }
+      setLeads(leads.filter(l => !ids.includes(l.id)))
+      setSelectedIds(new Set())
+      load()
+      setToast(`${ids.length} leads deleted`)
+    } catch (e) {
+      setToast('Error deleting leads')
+    }
+    setDeleting(false)
+    setDeleteTarget(null)
+  }
+
+  const toggleSelect = (id) => {
+    const next = new Set(selectedIds)
+    if (next.has(id)) next.delete(id); else next.add(id)
+    setSelectedIds(next)
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === leads.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(leads.map(l => l.id)))
+    }
   }
 
   const handleCancel = () => {
@@ -152,7 +186,15 @@ export default function Leads() {
 
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
         <div className="flex items-center justify-between gap-3 mb-4">
-          <h2 className="text-lg font-bold">All Leads</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-bold">All Leads</h2>
+            {selectedIds.size > 0 && (
+              <button onClick={() => setDeleteTarget({ ids: [...selectedIds], title: `${selectedIds.size} leads` })} className="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-sm">delete</span>
+                Delete Selected ({selectedIds.size})
+              </button>
+            )}
+          </div>
           <button onClick={load} className="bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-2 rounded-lg text-xs font-semibold">Refresh</button>
         </div>
 
@@ -167,6 +209,9 @@ export default function Leads() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-zinc-500 border-b border-zinc-800">
+                  <th className="p-2 w-10">
+                    <input type="checkbox" checked={selectedIds.size === leads.length && leads.length > 0} onChange={toggleSelectAll} className="accent-primary size-4 cursor-pointer" />
+                  </th>
                   <th className="text-left p-2">Name</th>
                   <th className="text-left p-2">Type</th>
                   <th className="text-left p-2">Email</th>
@@ -177,7 +222,10 @@ export default function Leads() {
               </thead>
               <tbody>
                 {leads.map(lead => (
-                  <tr key={lead.id} className="border-b border-zinc-800/60">
+                  <tr key={lead.id} className={`border-b border-zinc-800/60 ${selectedIds.has(lead.id) ? 'bg-primary/5' : ''}`}>
+                    <td className="p-2">
+                      <input type="checkbox" checked={selectedIds.has(lead.id)} onChange={() => toggleSelect(lead.id)} className="accent-primary size-4 cursor-pointer" />
+                    </td>
                     <td className="p-2">
                       <div className="font-semibold text-white">{lead.name}</div>
                       {lead.industry && <div className="text-xs text-zinc-500">{lead.industry}</div>}
@@ -202,7 +250,7 @@ export default function Leads() {
         )}
       </div>
 
-      <DeleteModal open={!!deleteTarget} title={deleteTarget?.title || ''} deleting={deleting} onConfirm={() => handleDelete(deleteTarget.id)} onCancel={() => { setDeleteTarget(null); setDeleting(false) }} />
+      <DeleteModal open={!!deleteTarget} title={deleteTarget?.title || ''} deleting={deleting} onConfirm={() => deleteTarget?.ids ? handleBulkDelete() : handleDelete(deleteTarget?.id)} onCancel={() => { setDeleteTarget(null); setDeleting(false) }} />
     </div>
   )
 }
