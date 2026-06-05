@@ -139,12 +139,12 @@ export default function AdminLayout({ children }) {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 md:p-10 max-w-7xl mx-auto w-full">
+        <div className="flex-1 overflow-y-auto p-4 md:p-10 max-w-7xl mx-auto w-full pb-20 md:pb-10">
           {children}
         </div>
 
         {/* Mobile bottom tab bar */}
-        <div className="md:hidden flex items-center border-t border-zinc-800 bg-zinc-900 shrink-0 safe-area-pb">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 flex items-center border-t border-zinc-800 bg-zinc-900 safe-area-pb z-40">
           {navItems.map(group => {
             const isActive = currentSection?.section === group.section
             return (
