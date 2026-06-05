@@ -45,7 +45,7 @@ export default function AdminLayout({ children }) {
   const currentSection = navItems.find(g => g.items.some(i => i.path === location.pathname))
 
   return (
-    <div className="flex h-screen bg-zinc-950 text-white overflow-hidden">
+    <div className="flex bg-zinc-950 text-white overflow-hidden" style={{ height: '100dvh' }}>
       {/* Mobile overlay */}
       {mobileSidebarOpen && (
         <button type="button" onClick={() => setMobileSidebarOpen(false)} className="fixed inset-0 bg-black/50 z-30 md:hidden" aria-label="Close sidebar overlay" />
@@ -130,7 +130,7 @@ export default function AdminLayout({ children }) {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 flex flex-col overflow-hidden bg-zinc-950">
+      <main className="flex-1 flex flex-col bg-zinc-950">
         {/* Mobile top bar */}
         <div className="md:hidden flex items-center justify-between h-14 px-4 border-b border-zinc-800 bg-zinc-950/95 backdrop-blur shrink-0">
           <div className="font-bold text-sm tracking-tight">Crabstack</div>
@@ -144,7 +144,7 @@ export default function AdminLayout({ children }) {
         </div>
 
         {/* Mobile bottom tab bar */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 flex items-center border-t border-zinc-800 bg-zinc-900 safe-area-pb z-40">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center border-t border-zinc-800 bg-zinc-900 safe-area-pb">
           {navItems.map(group => {
             const isActive = currentSection?.section === group.section
             return (
