@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { api } from '../api'
 
@@ -27,8 +27,18 @@ export default function AdminLayout({ children }) {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [activeTab, setActiveTab] = useState(null)
+  const vhRef = useRef(null)
 
   const user = JSON.parse(localStorage.getItem('crabstack_user') || '{}')
+
+  useEffect(() => {
+    const setVH = () => {
+      if (vhRef.current) vhRef.current.style.height = `${window.innerHeight}px`
+    }
+    setVH()
+    window.addEventListener('resize', setVH)
+    return () => window.removeEventListener('resize', setVH)
+  }, [])
 
   useEffect(() => {
     setMobileSidebarOpen(false)
@@ -45,7 +55,7 @@ export default function AdminLayout({ children }) {
   const currentSection = navItems.find(g => g.items.some(i => i.path === location.pathname))
 
   return (
-    <div className="flex bg-zinc-950 text-white overflow-hidden" style={{ height: '100dvh' }}>
+    <div ref={vhRef} className="flex bg-zinc-950 text-white overflow-hidden">
       {/* Mobile overlay */}
       {mobileSidebarOpen && (
         <button type="button" onClick={() => setMobileSidebarOpen(false)} className="fixed inset-0 bg-black/50 z-30 md:hidden" aria-label="Close sidebar overlay" />
@@ -139,12 +149,12 @@ export default function AdminLayout({ children }) {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 md:p-10 max-w-7xl mx-auto w-full pb-20 md:pb-10">
+        <div className="flex-1 overflow-y-auto p-4 md:p-10 max-w-7xl mx-auto w-full">
           {children}
         </div>
 
         {/* Mobile bottom tab bar */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center border-t border-zinc-800 bg-zinc-900 safe-area-pb">
+        <div className="md:hidden flex items-center border-t border-zinc-800 bg-zinc-900 safe-area-pb shrink-0">
           {navItems.map(group => {
             const isActive = currentSection?.section === group.section
             return (
