@@ -27,6 +27,7 @@ export default function AdminLayout({ children }) {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [activeTab, setActiveTab] = useState(null)
+  const [installPrompt, setInstallPrompt] = useState(null)
   const vhRef = useRef(null)
 
   const user = JSON.parse(localStorage.getItem('crabstack_user') || '{}')
@@ -38,6 +39,15 @@ export default function AdminLayout({ children }) {
     setVH()
     window.addEventListener('resize', setVH)
     return () => window.removeEventListener('resize', setVH)
+  }, [])
+
+  useEffect(() => {
+    const handler = e => {
+      e.preventDefault()
+      setInstallPrompt(e)
+    }
+    window.addEventListener('beforeinstallprompt', handler)
+    return () => window.removeEventListener('beforeinstallprompt', handler)
   }, [])
 
   useEffect(() => {
@@ -86,13 +96,28 @@ export default function AdminLayout({ children }) {
                 )
               })}
               {activeTab.section === 'Settings' && (
-                <button
-                  onClick={() => { setActiveTab(null); handleLogout() }}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-red-400 hover:bg-red-500/10 w-full transition-colors"
-                >
-                  <span className="material-symbols-outlined text-xl">logout</span>
-                  Logout
-                </button>
+                <>
+                  {installPrompt && (
+                    <button
+                      onClick={() => {
+                        installPrompt.prompt()
+                        installPrompt.userChoice.then(() => setInstallPrompt(null))
+                        setActiveTab(null)
+                      }}
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-zinc-300 hover:bg-zinc-800 w-full transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-xl">install_mobile</span>
+                      Install App
+                    </button>
+                  )}
+                  <button
+                    onClick={() => { setActiveTab(null); handleLogout() }}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-red-400 hover:bg-red-500/10 w-full transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-xl">logout</span>
+                    Logout
+                  </button>
+                </>
               )}
             </div>
           </div>
