@@ -24,6 +24,7 @@ export default function Leads() {
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
   const [selectedIds, setSelectedIds] = useState(new Set())
+  const [selectMode, setSelectMode] = useState(false)
 
   useEffect(() => { load() }, [])
 
@@ -129,6 +130,13 @@ export default function Leads() {
     }
   }
 
+  const toggleSelectMode = () => {
+    setSelectMode(!selectMode)
+    if (selectMode) {
+      setSelectedIds(new Set())
+    }
+  }
+
   const handleCancel = () => {
     setForm(defaultForm)
     setEditingId(null)
@@ -188,14 +196,20 @@ export default function Leads() {
         <div className="flex items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-3">
             <h2 className="text-lg font-bold">All Leads</h2>
-            {selectedIds.size > 0 && (
+            {selectMode && selectedIds.size > 0 && (
               <button onClick={() => setDeleteTarget({ ids: [...selectedIds], title: `${selectedIds.size} leads` })} className="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-sm">delete</span>
                 Delete Selected ({selectedIds.size})
               </button>
             )}
           </div>
-          <button onClick={load} className="bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-2 rounded-lg text-xs font-semibold">Refresh</button>
+          <div className="flex items-center gap-2">
+            {selectMode && <button onClick={() => { setSelectMode(false); setSelectedIds(new Set()) }} className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-2 rounded-lg text-xs font-semibold">Cancel</button>}
+            <button onClick={toggleSelectMode} className={`px-3 py-2 rounded-lg text-xs font-semibold ${selectMode ? 'bg-primary text-white' : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300'}`}>
+              {selectMode ? 'Selecting...' : 'Select'}
+            </button>
+            <button onClick={load} className="bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-2 rounded-lg text-xs font-semibold">Refresh</button>
+          </div>
         </div>
 
         {loading ? (
@@ -209,9 +223,11 @@ export default function Leads() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-zinc-500 border-b border-zinc-800">
-                  <th className="p-2 w-10">
-                    <input type="checkbox" checked={selectedIds.size === leads.length && leads.length > 0} onChange={toggleSelectAll} className="accent-primary size-4 cursor-pointer" />
-                  </th>
+                  {selectMode && (
+                    <th className="p-2 w-10">
+                      <input type="checkbox" checked={selectedIds.size === leads.length && leads.length > 0} onChange={toggleSelectAll} className="accent-primary size-4 cursor-pointer" />
+                    </th>
+                  )}
                   <th className="text-left p-2">Name</th>
                   <th className="text-left p-2">Type</th>
                   <th className="text-left p-2">Email</th>
@@ -222,10 +238,12 @@ export default function Leads() {
               </thead>
               <tbody>
                 {leads.map(lead => (
-                  <tr key={lead.id} className={`border-b border-zinc-800/60 ${selectedIds.has(lead.id) ? 'bg-primary/5' : ''}`}>
-                    <td className="p-2">
-                      <input type="checkbox" checked={selectedIds.has(lead.id)} onChange={() => toggleSelect(lead.id)} className="accent-primary size-4 cursor-pointer" />
-                    </td>
+                  <tr key={lead.id} className={`border-b border-zinc-800/60 ${selectMode && selectedIds.has(lead.id) ? 'bg-primary/5' : ''}`}>
+                    {selectMode && (
+                      <td className="p-2">
+                        <input type="checkbox" checked={selectedIds.has(lead.id)} onChange={() => toggleSelect(lead.id)} className="accent-primary size-4 cursor-pointer" />
+                      </td>
+                    )}
                     <td className="p-2">
                       <div className="font-semibold text-white">{lead.name}</div>
                       {lead.industry && <div className="text-xs text-zinc-500">{lead.industry}</div>}
