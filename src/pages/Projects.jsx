@@ -6,9 +6,13 @@ export default function Projects() {
   const [items, setItems] = useState([])
   const [editing, setEditing] = useState(null)
   const [form, setForm] = useState({ title: '', description: '', image_url: '', tags: '', client_name: '', sort_order: 0 })
+  const [screenshots, setScreenshots] = useState([])
   const [uploading, setUploading] = useState(false)
+  const [uploadingScreenshot, setUploadingScreenshot] = useState(false)
   const [loading, setLoading] = useState(true)
   const fileRef = useRef()
+  const screenshotFileRef = useRef()
+  const [newScreenshotDevice, setNewScreenshotDevice] = useState('website')
 
   useEffect(() => { load() }, [])
 
@@ -24,14 +28,26 @@ export default function Projects() {
     }
   }
 
+  const loadScreenshots = async (projectId) => {
+    try {
+      const data = await api.get(`/projects/${projectId}/images`)
+      setScreenshots(data)
+    } catch (e) {
+      console.error(e)
+      setScreenshots([])
+    }
+  }
+
   const openNew = () => {
     setEditing('new')
     setForm({ title: '', description: '', image_url: '', tags: '', client_name: '', sort_order: items.length })
+    setScreenshots([])
   }
 
   const openEdit = (item) => {
     setEditing(item.id)
     setForm({ ...item, tags: item.tags?.join(', ') || '' })
+    loadScreenshots(item.id)
   }
 
   const handleFileSelect = async () => {
@@ -48,10 +64,56 @@ export default function Projects() {
     fileRef.current.value = ''
   }
 
+  const handleScreenshotUpload = async () => {
+    const file = screenshotFileRef.current?.files?.[0]
+    if (!file) return
+    setUploadingScreenshot(true)
+    try {
+      const result = await api.upload(file, form.title || 'screenshot')
+      await api.post(`/projects/${editing === 'new' ? '__temp__' : editing}/images`, {
+        image_url: result.url,
+        device_type: newScreenshotDevice,
+        sort_order: screenshots.length,
+      })
+      if (editing !== 'new') {
+        loadScreenshots(editing)
+      } else {
+        setScreenshots([...screenshots, { id: Date.now().toString(), image_url: result.url, device_type: newScreenshotDevice, sort_order: screenshots.length }])
+      }
+    } catch (e) {
+      console.error('Screenshot upload failed', e)
+    }
+    setUploadingScreenshot(false)
+    screenshotFileRef.current.value = ''
+  }
+
+  const removeScreenshot = async (screenshot) => {
+    if (editing !== 'new' && screenshot.id) {
+      try {
+        await api.delete(`/projects/${editing}/images/${screenshot.id}`)
+        loadScreenshots(editing)
+      } catch (e) {
+        console.error(e)
+      }
+    } else {
+      setScreenshots(screenshots.filter(s => s.id !== screenshot.id))
+    }
+  }
+
   const save = async () => {
     const payload = { ...form, tags: form.tags ? form.tags.split(',').map(t => t.trim()).filter(Boolean) : [] }
-    if (editing === 'new') await api.post('/projects', payload)
-    else await api.put(`/projects/${editing}`, payload)
+    if (editing === 'new') {
+      const created = await api.post('/projects', payload)
+      for (const shot of screenshots) {
+        await api.post(`/projects/${created.id}/images`, {
+          image_url: shot.image_url,
+          device_type: shot.device_type,
+          sort_order: shot.sort_order,
+        })
+      }
+    } else {
+      await api.put(`/projects/${editing}`, payload)
+    }
     setEditing(null)
     load()
   }
@@ -72,13 +134,13 @@ export default function Projects() {
 
       {editing && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={() => setEditing(null)}>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 w-full max-w-lg mx-4 space-y-4" onClick={e => e.stopPropagation()}>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto space-y-4" onClick={e => e.stopPropagation()}>
             <h2 className="text-lg font-bold">{editing === 'new' ? 'New Project' : 'Edit Project'}</h2>
             <input placeholder="Title" value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white" />
             <textarea placeholder="Description" value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white h-24" />
 
             <div>
-              <label className="text-zinc-400 text-sm block mb-1">Image</label>
+              <label className="text-zinc-400 text-sm block mb-1">Thumbnail Image</label>
               {form.image_url && (
                 <div className="relative mb-2">
                   <img src={form.image_url} alt="preview" className="w-full h-32 object-cover rounded-lg" />
@@ -90,7 +152,36 @@ export default function Projects() {
               <div className="flex items-center gap-2">
                 <input ref={fileRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" id="project-image-input" />
                 <label htmlFor="project-image-input" className={`px-4 py-2 rounded-lg text-sm font-bold cursor-pointer ${uploading ? 'bg-zinc-700 text-zinc-400' : 'bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700'}`}>
-                  {uploading ? 'Uploading...' : form.image_url ? 'Change Image' : 'Upload Image'}
+                  {uploading ? 'Uploading...' : form.image_url ? 'Change Thumbnail' : 'Upload Thumbnail'}
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-zinc-400 text-sm block mb-2">Screenshots</label>
+              {screenshots.length > 0 && (
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  {screenshots.map((shot, i) => (
+                    <div key={shot.id || i} className="relative">
+                      <img src={shot.image_url} alt="" className="w-full h-20 object-cover rounded-lg" />
+                      <span className="absolute bottom-1 left-1 text-[10px] bg-black/70 text-white px-1.5 py-0.5 rounded">
+                        {shot.device_type === 'mobile' ? 'Mobile' : 'Website'}
+                      </span>
+                      <button onClick={() => removeScreenshot(shot)} className="absolute top-1 right-1 bg-black/60 text-white p-0.5 rounded-full text-xs">
+                        <span className="material-symbols-outlined text-sm">close</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <input ref={screenshotFileRef} type="file" accept="image/*" onChange={handleScreenshotUpload} className="hidden" id="screenshot-input" />
+                <select value={newScreenshotDevice} onChange={e => setNewScreenshotDevice(e.target.value)} className="bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-2 text-white text-sm">
+                  <option value="website">Website</option>
+                  <option value="mobile">Mobile</option>
+                </select>
+                <label htmlFor="screenshot-input" className={`px-4 py-2 rounded-lg text-sm font-bold cursor-pointer whitespace-nowrap ${uploadingScreenshot ? 'bg-zinc-700 text-zinc-400' : 'bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700'}`}>
+                  {uploadingScreenshot ? 'Uploading...' : '+ Add Screenshot'}
                 </label>
               </div>
             </div>
