@@ -172,7 +172,7 @@ export default function Projects() {
                     <div key={shot.id || i} className="relative">
                       <img src={shot.image_url} alt="" className="w-full h-20 object-cover rounded-lg" />
                       <span className="absolute bottom-1 left-1 text-[10px] bg-black/70 text-white px-1.5 py-0.5 rounded">
-                        {shot.device_type === 'mobile' ? 'Mobile' : 'Website'}
+                        {shot.device_type === 'mobile' ? 'Mobile' : shot.device_type === 'website' ? 'Website' : shot.device_type === 'poster' ? 'Poster' : 'Event'}
                       </span>
                       <button onClick={() => removeScreenshot(shot)} className="absolute top-1 right-1 bg-black/60 text-white p-0.5 rounded-full text-xs">
                         <span className="material-symbols-outlined text-sm">close</span>
@@ -186,6 +186,8 @@ export default function Projects() {
                 <select value={newScreenshotDevice} onChange={e => setNewScreenshotDevice(e.target.value)} className="bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-2 text-white text-sm">
                   <option value="website">Website</option>
                   <option value="mobile">Mobile</option>
+                  <option value="poster">Poster</option>
+                  <option value="event">Event</option>
                 </select>
                 <label htmlFor="screenshot-input" className={`px-4 py-2 rounded-lg text-sm font-bold cursor-pointer whitespace-nowrap ${uploadingScreenshot ? 'bg-zinc-700 text-zinc-400' : 'bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700'}`}>
                   {uploadingScreenshot ? 'Uploading...' : '+ Add Screenshot'}
@@ -222,8 +224,8 @@ export default function Projects() {
               )}
             </div>
             <input placeholder="Client Name" value={form.client_name} onChange={e => setForm({...form, client_name: e.target.value})} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white" />
-            <input placeholder="Preview Link (https://...)" value={form.preview_link} onChange={e => setForm({...form, preview_link: e.target.value})} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white" />
-            <input placeholder="GitHub Repo (https://github.com/...)" value={form.github_repo} onChange={e => setForm({...form, github_repo: e.target.value})} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white" />
+            {form.tags.includes('Website') && <input placeholder="Preview Link (https://...)" value={form.preview_link} onChange={e => setForm({...form, preview_link: e.target.value})} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white" />}
+            {form.tags.includes('App') && <input placeholder="GitHub Repo (https://github.com/...)" value={form.github_repo} onChange={e => setForm({...form, github_repo: e.target.value})} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white" />}
             <div className="flex gap-2 justify-end pt-2">
               <button onClick={() => setEditing(null)} className="px-4 py-2 text-zinc-400 hover:text-white">Cancel</button>
               <button onClick={save} className="bg-primary hover:bg-primary/80 text-white px-6 py-2 rounded-lg font-bold">Save</button>
