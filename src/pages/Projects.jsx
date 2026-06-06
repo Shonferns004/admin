@@ -17,6 +17,8 @@ export default function Projects() {
   const [customTag, setCustomTag] = useState('')
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [viewing, setViewing] = useState(null)
+  const [viewScreenshots, setViewScreenshots] = useState([])
 
   useEffect(() => { load() }, [])
 
@@ -52,6 +54,12 @@ export default function Projects() {
     setEditing(item.id)
     setForm({ ...item, tags: item.tags || [] })
     loadScreenshots(item.id)
+    setViewing(null)
+  }
+
+  const openView = (item) => {
+    setViewing(item)
+    api.get(`/projects/${item.id}/images`).then(setViewScreenshots).catch(() => setViewScreenshots([]))
   }
 
   const handleFileSelect = async () => {
@@ -280,6 +288,7 @@ export default function Projects() {
                   </td>
                   <td className="p-4">
                     <div className="flex gap-2">
+                      <button onClick={() => openView(item)} className="text-zinc-400 hover:text-white"><span className="material-symbols-outlined text-lg">visibility</span></button>
                       <button onClick={() => openEdit(item)} className="text-zinc-400 hover:text-primary"><span className="material-symbols-outlined text-lg">edit</span></button>
                       <button onClick={() => setDeleteTarget({ id: item.id, title: 'project' })} className="text-zinc-400 hover:text-red-400"><span className="material-symbols-outlined text-lg">delete</span></button>
                     </div>
@@ -291,6 +300,74 @@ export default function Projects() {
           )}
         </table>
       </div>
+
+      {/* Detail overlay */}
+      {viewing && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={() => setViewing(null)}>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="sticky top-0 bg-zinc-900 flex items-center justify-between p-4 border-b border-zinc-800">
+              <h2 className="font-bold text-lg truncate pr-4">{viewing.title}</h2>
+              <button onClick={() => setViewing(null)} className="text-zinc-400 hover:text-white shrink-0"><span className="material-symbols-outlined">close</span></button>
+            </div>
+            <div className="p-4 space-y-5">
+              {viewing.image_url && (
+                <img src={viewing.image_url} alt={viewing.title} className="w-full h-48 object-cover rounded-xl bg-zinc-800" />
+              )}
+              <div>
+                <div className="text-xs text-zinc-500 uppercase tracking-wide mb-1">Description</div>
+                <p className="text-zinc-300 text-sm leading-relaxed">{viewing.description || 'No description'}</p>
+              </div>
+              {viewing.tags?.length > 0 && (
+                <div>
+                  <div className="text-xs text-zinc-500 uppercase tracking-wide mb-2">Tags</div>
+                  <div className="flex flex-wrap gap-2">
+                    {viewing.tags.map(t => (
+                      <span key={t} className="text-xs bg-zinc-800 px-3 py-1.5 rounded-full text-zinc-300 border border-zinc-700">{t}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-4">
+                {viewing.client_name && (
+                  <div>
+                    <div className="text-xs text-zinc-500 uppercase tracking-wide mb-1">Client</div>
+                    <div className="text-sm text-zinc-300">{viewing.client_name}</div>
+                  </div>
+                )}
+                {viewing.preview_link && (
+                  <div>
+                    <div className="text-xs text-zinc-500 uppercase tracking-wide mb-1">Preview</div>
+                    <a href={viewing.preview_link} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline truncate block">{viewing.preview_link}</a>
+                  </div>
+                )}
+                {viewing.github_repo && (
+                  <div>
+                    <div className="text-xs text-zinc-500 uppercase tracking-wide mb-1">GitHub</div>
+                    <a href={viewing.github_repo} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline truncate block">{viewing.github_repo}</a>
+                  </div>
+                )}
+              </div>
+              {viewScreenshots.length > 0 && (
+                <div>
+                  <div className="text-xs text-zinc-500 uppercase tracking-wide mb-2">Screenshots ({viewScreenshots.length})</div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {viewScreenshots.map((shot, i) => (
+                      <a key={shot.id || i} href={shot.image_url} target="_blank" rel="noopener noreferrer">
+                        <img src={shot.image_url} alt="" className="w-full h-24 object-cover rounded-lg bg-zinc-800" />
+                        <div className="text-[10px] text-zinc-500 mt-1">{shot.device_type === 'mobile' ? 'Mobile' : shot.device_type === 'website' ? 'Website' : shot.device_type === 'poster' ? 'Poster' : 'Event'}</div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="flex gap-2 pt-2 border-t border-zinc-800">
+                <button onClick={() => { openEdit(viewing); setViewing(null) }} className="flex-1 bg-primary hover:bg-primary/80 text-white py-2.5 rounded-lg text-sm font-bold">Edit</button>
+                <button onClick={() => { setDeleteTarget({ id: viewing.id, title: viewing.title }); setViewing(null) }} className="flex-1 bg-red-600 hover:bg-red-500 text-white py-2.5 rounded-lg text-sm font-bold">Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <DeleteModal open={!!deleteTarget} title={deleteTarget?.title || ''} deleting={deleting} onConfirm={() => remove(deleteTarget.id)} onCancel={() => { setDeleteTarget(null); setDeleting(false) }} />
     </div>
